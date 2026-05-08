@@ -1,4 +1,4 @@
-# Dataset GreenRAG — Sources de données
+# Dataset GreenMind — Sources de données
 
 ## Statistiques
 - IRENA  : 19 fichiers (PDFs + CSV/Excel)
