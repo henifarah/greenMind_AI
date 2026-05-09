@@ -136,96 +136,126 @@ def read_excel(file_path: Path, source: str) -> Optional[dict]:
         return None
 
 
-# ── Lecteur CSV ───────────────────────────────────────────
 def read_csv(file_path: Path, source: str) -> Optional[dict]:
     """
-    Lit un CSV et le convertit en texte structuré.
-
-    Pour les CSV OWID qui ont des colonnes comme :
-    Entity, Year, Solar capacity (GW)
-    Tunisia, 2023, 0.542
-
-    On produit un texte comme :
-    "Entity: Tunisia, Year: 2023, Solar capacity: 0.542 GW"
-
-    Ce format est bien plus lisible par BGE-M3
-    qu'un CSV brut avec des virgules.
+    Lit un CSV et le convertit en texte structuré intelligent.
+    
+    Gère deux formats :
+    1. Format standard  : colonnes normales (OWID, IEA)
+    2. Format IRENA     : 1 seule colonne avec long nom,
+                          vraies colonnes dans les données
     """
     try:
-        # Essayer différents encodages (les CSV peuvent varier)
+        # ── Étape 1 : Lire le fichier ─────────────────────
+        df = None
+        used_encoding = "utf-8"
+
         for encoding in ["utf-8", "latin-1", "cp1252"]:
             try:
                 df = pd.read_csv(file_path, encoding=encoding)
+                used_encoding = encoding
                 break
             except UnicodeDecodeError:
                 continue
-        else:
+
+        if df is None:
             logger.error(f"❌ Encodage impossible : {file_path.name}")
             return None
 
-        # Ignorer les CSV vides
+        # ── Étape 2 : Détecter et corriger format IRENA ───
+        # Format IRENA : 1 colonne avec un très long nom
+        # qui contient en réalité plusieurs colonnes séparées
+        # par des virgules dans le header original.
+        # Solution : re-lire en sautant la première ligne.
+        if len(df.columns) == 1 and len(str(df.columns[0])) > 50:
+            logger.debug(
+                f"Format IRENA détecté : {file_path.name} "
+                f"— re-lecture avec skiprows=1"
+            )
+            try:
+                df = pd.read_csv(
+                    file_path,
+                    encoding=used_encoding,
+                    skiprows=1,   # sauter le faux header
+                    header=0,     # 1ère ligne = vrais noms de colonnes
+                )
+                # Nettoyer les espaces dans les noms de colonnes
+                df.columns = [str(c).strip() for c in df.columns]
+                logger.debug(
+                    f"Colonnes détectées : {df.columns.tolist()}"
+                )
+            except Exception as e:
+                logger.warning(
+                    f"Re-lecture IRENA échouée pour {file_path.name} : {e}"
+                )
+
+        # ── Étape 3 : Nettoyer ────────────────────────────
         if df.empty:
             logger.warning(f"CSV vide : {file_path.name}")
             return None
 
-        # Nettoyer
         df = df.dropna(how="all").dropna(axis=1, how="all")
 
-        # Convertir en texte lisible
-        # head(500) → on limite à 500 lignes pour éviter les CSV géants
+        if df.empty:
+            logger.warning(f"CSV vide après nettoyage : {file_path.name}")
+            return None
+
         rows_count = len(df)
+
+        # ── Étape 4 : Convertir en texte structuré ────────
+        # Format : header une seule fois + données compactes
+        # Exemple :
+        # [Dataset: R-ELECCAP]
+        # Colonnes: Region | Technology | Year | Capacity
+        # World | Solar | 2023 | 1418000
+        # Africa | Solar | 2023 | 12500
+
+        col_names = " | ".join(str(c) for c in df.columns)
+        header = f"[Dataset: {file_path.stem}]\nColonnes: {col_names}\n"
+
+        # Limiter à 500 lignes pour éviter les CSV géants
         df_sample = df.head(500)
 
-        # Format : "Col1: val1, Col2: val2, ..."
         lines = []
         for _, row in df_sample.iterrows():
-            line = ", ".join([
-                f"{col}: {val}"
-                for col, val in row.items()
-                if pd.notna(val)
+            line = " | ".join([
+                str(val).strip() if pd.notna(val) else "N/A"
+                for val in row.values
             ])
-            if line:
+            # Ignorer les lignes vides
+            if line.replace("|", "").replace("N/A", "").strip():
                 lines.append(line)
 
-        full_text = f"[Dataset: {file_path.stem}]\n" + "\n".join(lines)
+        full_text = header + "\n".join(lines)
 
-        logger.success(f"✅ CSV lu : {file_path.name} ({rows_count} lignes)")
+        logger.success(
+            f"✅ CSV lu : {file_path.name} "
+            f"({rows_count} lignes, {len(df.columns)} colonnes)"
+        )
 
         return make_document(
             text=full_text,
             source=source,
             filename=file_path.name,
             file_type="csv",
-            extra={"rows": rows_count}
+            extra={"rows": rows_count, "columns": len(df.columns)}
         )
 
     except Exception as e:
         logger.error(f"❌ Erreur CSV {file_path.name} : {e}")
         return None
-
-
 # ── Lecteur JSON ──────────────────────────────────────────
 def read_json(file_path: Path, source: str) -> Optional[dict]:
     """
     Lit un fichier JSON (métadonnées OWID).
-
-    Les fichiers .metadata.json OWID contiennent des infos
-    précieuses : description du dataset, source originale,
-    unités de mesure, couverture temporelle.
-
-    Ces métadonnées enrichissent le RAG — quand on répond
-    à une question, on peut citer la source exacte et
-    les unités utilisées.
+    Contient : description, source, unités, couverture temporelle.
     """
     try:
         with open(file_path, "r", encoding="utf-8") as f:
             data = json.load(f)
 
-        # Convertir le JSON en texte lisible
-        # On extrait les champs les plus utiles pour le RAG
         text_parts = []
 
-        # Parcourir récursivement le JSON
         def extract_text(obj, prefix=""):
             if isinstance(obj, dict):
                 for key, value in obj.items():
@@ -256,35 +286,23 @@ def read_json(file_path: Path, source: str) -> Optional[dict]:
         return None
 
 
-# ── Fonction principale ───────────────────────────────────
+# ── Routeur principal ─────────────────────────────────────
 def read_file(file_path: Path, source: str) -> Optional[dict]:
     """
-    Point d'entrée unique du module readers.
-    Détecte automatiquement le type de fichier
-    et appelle le bon lecteur.
-
-    Usage :
-        doc = read_file(Path("data/raw/irena/costs.pdf"), "irena")
-        print(doc["text"])  # texte extrait
-        print(doc["source"])  # "irena"
+    Point d'entrée unique — détecte le type et appelle
+    le bon lecteur automatiquement.
     """
     suffix = file_path.suffix.lower()
 
-    # Router vers le bon lecteur selon l'extension
     if suffix == ".pdf":
         return read_pdf(file_path, source)
-
     elif suffix in [".xlsx", ".xls"]:
         return read_excel(file_path, source)
-
     elif suffix == ".csv":
         return read_csv(file_path, source)
-
     elif suffix == ".json":
         return read_json(file_path, source)
-
     else:
-        # Extension non supportée — on log et on ignore
         logger.warning(f"⏭️ Extension non supportée : {suffix} ({file_path.name})")
         return None
 
@@ -293,9 +311,7 @@ def read_file(file_path: Path, source: str) -> Optional[dict]:
 def read_source(source_name: str, data_path: Path) -> list[dict]:
     """
     Lit TOUS les fichiers d'une source (ex: tous les fichiers IRENA).
-
     Retourne une liste de documents — un par fichier réussi.
-    Les fichiers qui échouent sont ignorés (logged mais pas bloquants).
     """
     source_path = data_path / source_name
 
@@ -305,20 +321,19 @@ def read_source(source_name: str, data_path: Path) -> list[dict]:
 
     documents = []
 
-    # Parcourir tous les fichiers du dossier
     all_files = list(source_path.iterdir())
     readable_files = [
         f for f in all_files
-        if f.is_file() and f.suffix.lower() in
-        [".pdf", ".xlsx", ".xls", ".csv", ".json"]
-        and not f.name.startswith(".")  # ignorer .gitkeep
+        if f.is_file()
+        and f.suffix.lower() in [".pdf", ".xlsx", ".xls", ".csv", ".json"]
+        and not f.name.startswith(".")
     ]
 
     logger.info(f"Source {source_name.upper()} : {len(readable_files)} fichiers à lire")
 
     for file_path in readable_files:
         doc = read_file(file_path, source_name)
-        if doc and len(doc["text"]) > 100:  # ignorer les docs quasi-vides
+        if doc and len(doc["text"]) > 100:
             documents.append(doc)
 
     logger.info(f"Source {source_name.upper()} : {len(documents)} documents extraits")
