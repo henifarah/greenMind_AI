@@ -38,3 +38,4 @@ tqdm==4.66.5
 loguru==0.7.2
 pytest==8.3.2
 pytest-asyncio==0.23.8
+openpyxl==3.1.2
