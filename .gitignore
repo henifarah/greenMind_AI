@@ -11,3 +11,5 @@ data/processed/*
 !data/processed/.gitkeep
 *.faiss
 .DS_Store
+chunks_with_vectors.json
+chunks_export.json
