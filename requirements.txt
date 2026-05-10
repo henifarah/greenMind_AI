@@ -40,3 +40,4 @@ pytest==8.3.2
 pytest-asyncio==0.23.8
 openpyxl==3.1.2
 langchain-text-splitters==0.2.4
+rank-bm25==0.2.2
