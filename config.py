@@ -9,15 +9,11 @@ load_dotenv()
 class Settings:
 
     # ── LLM ──────────────────────────────────────────────
-    # Clé API OpenAI — lue depuis .env, jamais écrite en dur
-    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
-
-    # Modèle principal : GPT-4o-mini (économique et performant)
-    LLM_MODEL: str = "gpt-4o-mini"
-
-    # Température basse = réponses factuelles, pas créatives
-    # 0.0 = toujours la même réponse | 1.0 = très créatif
+    OPENAI_API_KEY: str = ""           # pas besoin avec Ollama
+    LLM_MODEL: str = "llama3.2:3b"         # modèle Ollama
+    LLM_MODEL_COMPLEX: str = "gemma2"  # pour plus tard
     LLM_TEMPERATURE: float = 0.1
+    OLLAMA_URL: str = "http://localhost:11434"  # URL Ollama local
 
     # ── Embeddings ───────────────────────────────────────
     # BGE-M3 : meilleur modèle open-source multilingue FR+EN

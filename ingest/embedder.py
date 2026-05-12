@@ -142,3 +142,10 @@ def verify_embedding(chunk: dict) -> bool:
         return False
 
     return True
+def release_model():
+    """Libère BGE-M3 de la RAM."""
+    global _model
+    _model = None
+    import gc
+    gc.collect()
+    logger.info("✅ BGE-M3 libéré de la RAM")
