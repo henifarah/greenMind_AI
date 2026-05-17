@@ -1,0 +1,52 @@
+{
+  "default": {
+    "name": "Conversation principale",
+    "messages": [
+      {
+        "role": "user",
+        "content": "l'évolution de l'énergie renouvelables en 2025"
+      },
+      {
+        "role": "user",
+        "content": "Quel est le cout du kWh solaire en Tunisie en 2024 ?"
+      },
+      {
+        "role": "assistant",
+        "content": "Selon les données de IRENA, le coût actualisé de l'électricité pour la Tunisie en 2024 est de 0,0403 $/kWh pour l'énergie solaire. Cela signifie que si nous devons déduire ce montant du kWh solaire, il nous reste 1 - (0,0403/100) = 0,9597 $/kWh.\n\nPar conséquent, le coût du kWh solaire en Tunisie en 2024 est de 0,9597 $."
+      },
+      {
+        "role": "user",
+        "content": "Quel est le cout du kWh solaire en Tunisie en 2024 ?"
+      },
+      {
+        "role": "assistant",
+        "content": "Chiffre clé : LCOE solaire Tunisie = $0,0403/kWh\n\nExplication : Le coût de l'électricité solaire photovoltaïque en Tunisie en 2024 est estimé à environ 40 cents par kilowatt-heure (kWh).\n\nSource : IRENA - IRENA_DAT_Off-grid_Renewable_Energy_Statistics_2025.pdf"
+      },
+      {
+        "role": "user",
+        "content": "Quel est le cout du kWh solaire en Tunisie en 2024 ?"
+      },
+      {
+        "role": "assistant",
+        "content": "Le coût du kWh solaire en Tunisie en 2024 est de 4.03 centimes/kWh. \n\nCette valeur est donnée comme LCOE exact pour la technologie solaire PV en Tunisie, selon un calcul précis effectué par IRENA dans son rapport \"IRENA Renewable Energy Outlook MENA 2024\"."
+      },
+      {
+        "role": "user",
+        "content": "donner la définition de l'énergie renouvelables"
+      },
+      {
+        "role": "assistant",
+        "content": "La définition d'énergie renouvelable est :\n\nRenewables:  Include bioenergy, geothermal, hydropower, solar photovoltaics (PV), concentrating solar power (CSP), wind and marine (tide and wave) energy for electricity and heat generation.\n\nSource : Annex A | Definitions - [IEA — BatteriesandSecureEnergyTransitions.pdf]"
+      },
+      {
+        "role": "user",
+        "content": "combien de critére existe dans l'énergie renouvelables"
+      },
+      {
+        "role": "assistant",
+        "content": "Il existe 13 critères pour évaluer les énergies renouvelables :\n\n1. Total renewable energy : Capacité totale d'énergie renouvelable en TWh (Terawatt-heures)\n Source : IRENA - DAT_RE_capacity_statistics_2026.pdf, Page 5\n\n2. Renewable hydropower : Capacité de production hydroélectrique renouvelable en TWh\n Source : IRENA - DAT_RE_capacity_statistics_2026.pdf, Page 9\n\n3. Wind energy : Capacité de production éolienne en TWh\n Source : IEA - Renewables2025.pdf, Page 107\n\n4. Solar energy : Capacité de production solaire en TWh\n Source : IEA - Renewables2025.pdf, Page 107\n\n5. Renewable waste : Capacité de production d'énergie renouvelable à partir des déchets en MW\n Source : IRENA - RENEWABLES2025.pdf, Page 32\n\n6. Bioenergy : Capacité de production énergétique à partir du bioénergie en TWh\n Source : IEA - Renewables2025.pdf, Page 107\n\n7. Geothermal energy : Capacité de production géothermique en TWh\n Source : IRENA - DAT_RE_capacity_statistics_2026.pdf, Page 30\n\n8. Renewable hydropower (including mixed plants) : Capacité de production hydroélectrique renouvelable avec centrales mixtes en TWh\n Source : IRENA - DAT_RE_capacity_statistics_2026.pdf, Page 9\n\n9. Solar photovoltaic : Capacité de production solaire photovoltaïque en MW\n Source : IEA - Renewables2025.pdf, Page 25\n\n10. Concentrated solar power : Capacité de production énergétique solaire à concentration en MW\n Source : IRENA - DAT_RE_capacity_statistics_2026.pdf, Page 29\n\n11. Marine energy : Capacité de production énergétique marine en MW\n Source : IEA - Renewables2025.pdf, Page 13\n\n12. Onshore wind energy : Capacité de production éolienne terrestre en MW\n Source : IRENA - DAT_RE_capacity_statistics_2026.pdf, Page 17\n\n13. Offshore wind energy : Capacité de production éolienne maritime en MW\n Source : IEA - Renewables2025.pdf, Page 20"
+      }
+    ],
+    "created": "2026-05-17T01:42:52.855318"
+  }
+}
